@@ -1,7 +1,17 @@
-import '../styles/globals.css'
+import Head from 'next/head';
 
-function MyApp({ Component, pageProps }) {
-  return <Component {...pageProps} />
-}
+const App = ({ Component, pageProps }) => {
+	return (
+		<>
+			<Head>
+				<link
+					href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css"
+					rel="stylesheet"
+				/>
+			</Head>
+			<Component {...pageProps} />
+		</>
+	);
+};
 
-export default MyApp
+export default App;

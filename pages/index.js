@@ -1,65 +1,80 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import { GraphQLClient } from 'graphql-request';
+import Link from 'next/link';
 
-export default function Home() {
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+const graphcms = new GraphQLClient(process.env.GRAPHQL_URL_ENDPOINT);
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+export async function getStaticProps() {
+	const { posts } = await graphcms.request(
+		`
+    query Posts() {
+      posts {
+        id
+        title
+        excerpt
+        slug
+        coverImage {
+          id
+          url
+        }
+        author {
+          id
+          name
+        }
+        date
+      }
+    }
+  `
+	);
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
-  )
+	return {
+		props: {
+			posts,
+		},
+	};
 }
+
+export default ({ posts }) => {
+	return (
+		<div className="py-16 bg-gray-100">
+			{posts.map((post) => {
+				return (
+					<Link
+						key={post.id}
+						as={`/post/${post.slug}`}
+						href="/post/[slug]"
+					>
+						<a className="max-w-lg shadow-lg mb-16 rounded-lg mx-auto flex">
+							<div
+								className="h-48 lg:h-auto lg:w-48 flex-none bg-cover rounded-t lg:rounded-t-none lg:rounded-l text-center overflow-hidden"
+								style={{
+									backgroundImage: `url(${post.coverImage.url})`,
+								}}
+								title={post.title}
+							/>
+							<div className="bg-white rounded-b lg:rounded-b-none lg:rounded-r p-4 flex flex-col justify-between leading-normal">
+								<div className="mb-8">
+									<div className="text-gray-900 font-bold text-xl mb-2">
+										{post.title}
+									</div>
+									<p className="text-gray-700 text-base">
+										{post.excerpt}
+									</p>
+								</div>
+								<div className="flex items-center">
+									<div className="text-sm">
+										<p className="text-gray-900 leading-none">
+											{post.author.name}
+										</p>
+										<p className="text-gray-600">
+											{post.date}
+										</p>
+									</div>
+								</div>
+							</div>
+						</a>
+					</Link>
+				);
+			})}
+		</div>
+	);
+};
